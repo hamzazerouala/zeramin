@@ -1,15 +1,18 @@
 import { Link } from 'react-router-dom';
+import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { money } from '@/lib/format';
 import Loader from '@/components/Loader';
+import Pagination from '@/components/Pagination';
 import type { Paginated, Product } from '@/types';
 
 export default function SellerProducts() {
     const qc = useQueryClient();
+    const [page, setPage] = useState(1);
     const { data, isLoading } = useQuery({
-        queryKey: ['seller-products'],
-        queryFn: async () => (await api.get<Paginated<Product>>('/seller/products')).data,
+        queryKey: ['seller-products', page],
+        queryFn: async () => (await api.get<Paginated<Product>>(`/seller/products?page=${page}`)).data,
     });
 
     const archive = useMutation({
@@ -63,6 +66,13 @@ export default function SellerProducts() {
                     </tbody>
                 </table>
             </div>
+            {data?.meta && (
+                <Pagination
+                    currentPage={data.meta.current_page}
+                    lastPage={data.meta.last_page}
+                    onPage={setPage}
+                />
+            )}
         </div>
     );
 }

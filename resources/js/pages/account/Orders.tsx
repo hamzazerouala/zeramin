@@ -1,8 +1,10 @@
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { api } from '@/lib/api';
 import { money, date } from '@/lib/format';
 import Loader from '@/components/Loader';
+import Pagination from '@/components/Pagination';
 import type { Paginated, Order } from '@/types';
 
 const statusLabels: Record<string, string> = {
@@ -16,9 +18,10 @@ const statusLabels: Record<string, string> = {
 };
 
 export default function Orders() {
+    const [page, setPage] = useState(1);
     const { data, isLoading } = useQuery({
-        queryKey: ['my-orders'],
-        queryFn: async () => (await api.get<Paginated<Order>>('/orders')).data,
+        queryKey: ['my-orders', page],
+        queryFn: async () => (await api.get<Paginated<Order>>(`/orders?page=${page}`)).data,
     });
 
     if (isLoading) return <Loader />;
@@ -45,6 +48,13 @@ export default function Orders() {
                     </Link>
                 ))}
             </div>
+            {data?.meta && (
+                <Pagination
+                    currentPage={data.meta.current_page}
+                    lastPage={data.meta.last_page}
+                    onPage={setPage}
+                />
+            )}
         </div>
     );
 }

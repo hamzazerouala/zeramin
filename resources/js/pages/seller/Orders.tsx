@@ -4,17 +4,19 @@ import { api, apiErrorMessage } from '@/lib/api';
 import { money, date } from '@/lib/format';
 import Loader from '@/components/Loader';
 import Alert from '@/components/Alert';
+import Pagination from '@/components/Pagination';
 import type { Paginated, Order } from '@/types';
 
 const STATUSES = ['processing', 'shipped', 'in_transit', 'delivered', 'disputed', 'cancelled'];
 
 export default function SellerOrders() {
     const qc = useQueryClient();
+    const [page, setPage] = useState(1);
     const [tracking, setTracking] = useState<Record<number, string>>({});
 
     const { data, isLoading } = useQuery({
-        queryKey: ['seller-orders'],
-        queryFn: async () => (await api.get<Paginated<Order>>('/seller/orders')).data,
+        queryKey: ['seller-orders', page],
+        queryFn: async () => (await api.get<Paginated<Order>>(`/seller/orders?page=${page}`)).data,
     });
 
     const updateStatus = useMutation({
@@ -65,6 +67,13 @@ export default function SellerOrders() {
                 ))}
                 {data && data.data.length === 0 && <p className="text-gray-500">Aucune commande.</p>}
             </div>
+            {data?.meta && (
+                <Pagination
+                    currentPage={data.meta.current_page}
+                    lastPage={data.meta.last_page}
+                    onPage={setPage}
+                />
+            )}
         </div>
     );
 }
