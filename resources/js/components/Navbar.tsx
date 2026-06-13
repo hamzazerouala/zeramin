@@ -41,6 +41,7 @@ export default function Navbar() {
                     {user ? (
                         <>
                             <Link to="/account/orders" className="hover:text-brand-600">{user.name}</Link>
+                            <Link to="/account/profile" className="hover:text-brand-600">Mon profil</Link>
                             <button onClick={handleLogout} className="text-gray-500 hover:text-gray-800">Déconnexion</button>
                         </>
                     ) : (

@@ -118,6 +118,20 @@ export interface Paginated<T> {
     links?: unknown;
 }
 
+export interface Address {
+    id: number;
+    recipient_name: string;
+    phone?: string | null;
+    address: string;
+    address_complement?: string | null;
+    postal_code: string;
+    city: string;
+    province?: string | null;
+    country: string;
+    type?: 'shipping' | 'billing' | 'both' | null;
+    is_default: boolean;
+}
+
 export interface CheckoutBreakdown {
     subtotal: number;
     discount: number;
