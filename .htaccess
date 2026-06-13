@@ -1,0 +1,8 @@
+# cPanel mutualisé : rediriger la racine vers /public sans exposer le code.
+# Alternative recommandée : faire pointer le DocumentRoot du domaine sur public_html/public.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(\.env|composer\.(json|lock)|artisan|storage|bootstrap) - [F,L]
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
