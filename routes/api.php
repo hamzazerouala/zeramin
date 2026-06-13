@@ -14,6 +14,7 @@ use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\AdminController;
+use App\Http\Controllers\Api\TicketController;
 
 /*
 |--------------------------------------------------------------------------
@@ -85,6 +86,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/wishlist/items', [WishlistController::class, 'store']);
     Route::delete('/wishlist/items/{product}', [WishlistController::class, 'destroy']);
 
+    // Support tickets
+    Route::get('/tickets', [TicketController::class, 'index']);
+    Route::post('/tickets', [TicketController::class, 'store']);
+    Route::get('/tickets/{ticket}', [TicketController::class, 'show']);
+    Route::post('/tickets/{ticket}/messages', [TicketController::class, 'addMessage']);
+
     // --- Espace vendeur ---
     Route::prefix('seller')->middleware('seller')->group(function () {
         Route::get('/dashboard', [SellerController::class, 'dashboard']);
@@ -114,5 +121,7 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/users/{user}/verify', [AdminController::class, 'verifyUser']);
         Route::get('/disputes', [AdminController::class, 'disputes']);
         Route::put('/disputes/{order}/resolve', [AdminController::class, 'resolveDispute']);
+        Route::get('/tickets', [TicketController::class, 'adminIndex']);
+        Route::put('/tickets/{ticket}/status', [TicketController::class, 'updateStatus']);
     });
 });

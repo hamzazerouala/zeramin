@@ -30,6 +30,9 @@ export default function Navbar() {
                     {user && (
                         <Link to="/account/wishlist" className="hover:text-brand-600">Favoris</Link>
                     )}
+                    {user && (
+                        <Link to="/account/tickets" className="hover:text-brand-600">Support</Link>
+                    )}
 
                     <Link to="/cart" className="relative hover:text-brand-600">
                         Panier

@@ -12,6 +12,8 @@ import Orders from '@/pages/account/Orders';
 import OrderDetail from '@/pages/account/OrderDetail';
 import Wishlist from '@/pages/account/Wishlist';
 import Profile from '@/pages/account/Profile';
+import Tickets from '@/pages/account/Tickets';
+import TicketDetail from '@/pages/account/TicketDetail';
 import SellerDashboard from '@/pages/seller/Dashboard';
 import SellerProducts from '@/pages/seller/Products';
 import ImportProduct from '@/pages/seller/ImportProduct';
@@ -37,6 +39,8 @@ export default function App() {
                     <Route path="/account/orders/:id" element={<OrderDetail />} />
                     <Route path="/account/wishlist" element={<Wishlist />} />
                     <Route path="/account/profile" element={<Profile />} />
+                    <Route path="/account/tickets" element={<Tickets />} />
+                    <Route path="/account/tickets/:id" element={<TicketDetail />} />
                 </Route>
 
                 <Route element={<ProtectedRoute requireSeller />}>

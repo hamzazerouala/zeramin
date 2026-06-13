@@ -4,12 +4,13 @@ import { api } from '@/lib/api';
 import { money, date } from '@/lib/format';
 import Loader from '@/components/Loader';
 import Pagination from '@/components/Pagination';
-import type { Order, Paginated, User } from '@/types';
+import type { Order, Paginated, SupportTicket, User } from '@/types';
 
 export default function Admin() {
-    const [tab, setTab] = useState<'users' | 'disputes'>('users');
+    const [tab, setTab] = useState<'users' | 'disputes' | 'tickets'>('users');
     const [usersPage, setUsersPage] = useState(1);
     const [disputesPage, setDisputesPage] = useState(1);
+    const [ticketsPage, setTicketsPage] = useState(1);
     const qc = useQueryClient();
 
     const users = useQuery({
@@ -22,6 +23,12 @@ export default function Admin() {
         queryKey: ['admin-disputes', disputesPage],
         queryFn: async () => (await api.get<Paginated<Order>>(`/admin/disputes?page=${disputesPage}`)).data,
         enabled: tab === 'disputes',
+    });
+
+    const tickets = useQuery({
+        queryKey: ['admin-tickets', ticketsPage],
+        queryFn: async () => (await api.get<Paginated<SupportTicket>>(`/admin/tickets?page=${ticketsPage}`)).data,
+        enabled: tab === 'tickets',
     });
 
     const verify = useMutation({
@@ -39,13 +46,13 @@ export default function Admin() {
         <div>
             <h1 className="mb-6 text-2xl font-bold">Administration</h1>
             <div className="mb-4 flex gap-2 text-sm">
-                {(['users', 'disputes'] as const).map((t) => (
+                {(['users', 'disputes', 'tickets'] as const).map((t) => (
                     <button
                         key={t}
                         onClick={() => setTab(t)}
                         className={`rounded-md border px-3 py-1.5 ${tab === t ? 'border-brand-600 bg-brand-50 text-brand-700' : ''}`}
                     >
-                        {t === 'users' ? 'Utilisateurs' : 'Litiges'}
+                        {t === 'users' ? 'Utilisateurs' : t === 'disputes' ? 'Litiges' : 'Tickets'}
                     </button>
                 ))}
             </div>
@@ -116,6 +123,44 @@ export default function Admin() {
                                 currentPage={disputes.data.meta.current_page}
                                 lastPage={disputes.data.meta.last_page}
                                 onPage={setDisputesPage}
+                            />
+                        )}
+                    </>
+                )
+            )}
+
+            {tab === 'tickets' && (
+                tickets.isLoading ? <Loader /> : (
+                    <>
+                        <div className="space-y-3">
+                            {tickets.data?.data.length === 0 && <p className="text-gray-500">Aucun ticket.</p>}
+                            {tickets.data?.data.map((t) => (
+                                <div key={t.id} className="flex items-center justify-between rounded-lg border bg-white p-4">
+                                    <div>
+                                        <p className="font-medium">{t.subject}</p>
+                                        <p className="text-sm text-gray-500">{t.user?.name} · {date(t.created_at)}</p>
+                                    </div>
+                                    <select
+                                        defaultValue={t.status}
+                                        onChange={(e) =>
+                                            e.target.value &&
+                                            api.put(`/admin/tickets/${t.id}/status`, { status: e.target.value })
+                                                .then(() => qc.invalidateQueries({ queryKey: ['admin-tickets'] }))
+                                        }
+                                        className="rounded-md border px-2 py-1 text-sm"
+                                    >
+                                        {(['open', 'pending', 'resolved', 'closed', 'escalated'] as const).map((s) => (
+                                            <option key={s} value={s}>{s}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            ))}
+                        </div>
+                        {tickets.data?.meta && (
+                            <Pagination
+                                currentPage={tickets.data.meta.current_page}
+                                lastPage={tickets.data.meta.last_page}
+                                onPage={setTicketsPage}
                             />
                         )}
                     </>

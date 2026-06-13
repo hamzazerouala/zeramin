@@ -118,6 +118,28 @@ export interface Paginated<T> {
     links?: unknown;
 }
 
+export interface TicketMessage {
+    id: number;
+    ticket_id: number;
+    user_id: number;
+    message: string;
+    created_at?: string;
+    user?: { id: number; name: string };
+}
+
+export interface SupportTicket {
+    id: number;
+    user_id: number;
+    order_id?: number | null;
+    subject: string;
+    status: 'open' | 'pending' | 'resolved' | 'closed' | 'escalated';
+    priority: 'low' | 'normal' | 'high';
+    created_at?: string;
+    order?: { id: number; order_number: string } | null;
+    user?: { id: number; name: string; email: string } | null;
+    messages?: TicketMessage[];
+}
+
 export interface Address {
     id: number;
     recipient_name: string;
