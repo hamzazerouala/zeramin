@@ -10,6 +10,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\SellerProfile;
 use App\Models\ShippingZone;
+use App\Services\StripeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -213,5 +214,58 @@ class SellerController extends Controller
     private function authorizeOrder(Request $request, Order $order): void
     {
         abort_unless($order->seller_id === $request->user()->sellerProfile?->id, 403, 'Commande hors de votre boutique.');
+    }
+
+    /* ------------------------------------------------------------------ */
+    /*  Stripe Connect                                                       */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Génère un lien d'onboarding Stripe Connect.
+     * Crée un compte Express si le vendeur n'en a pas encore.
+     */
+    public function stripeOnboard(Request $request): JsonResponse
+    {
+        $seller = $request->user()->sellerProfile;
+        $stripe = app(StripeService::class);
+
+        if (! $seller->stripe_connect_id) {
+            $accountId = $stripe->createConnectAccount($request->user());
+            $seller->update(['stripe_connect_id' => $accountId]);
+        }
+
+        $baseUrl   = config('app.url');
+        $returnUrl = $baseUrl.'/seller/settings?stripe=success';
+        $refreshUrl = $baseUrl.'/seller/settings?stripe=refresh';
+
+        $url = $stripe->createOnboardingLink($seller->stripe_connect_id, $returnUrl, $refreshUrl);
+
+        return response()->json(['url' => $url]);
+    }
+
+    /**
+     * Retourne le statut du compte Stripe Connect du vendeur.
+     */
+    public function stripeStatus(Request $request): JsonResponse
+    {
+        $seller = $request->user()->sellerProfile;
+
+        if (! $seller->stripe_connect_id) {
+            return response()->json([
+                'connected'         => false,
+                'charges_enabled'   => false,
+                'payouts_enabled'   => false,
+                'details_submitted' => false,
+            ]);
+        }
+
+        try {
+            $stripe = app(StripeService::class);
+            $status = $stripe->getAccountStatus($seller->stripe_connect_id);
+
+            return response()->json(array_merge(['connected' => true], $status));
+        } catch (\Throwable $e) {
+            return response()->json(['connected' => false, 'error' => $e->getMessage()], 422);
+        }
     }
 }

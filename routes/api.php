@@ -118,6 +118,10 @@ Route::middleware('auth:sanctum')->group(function () {
         // Virements
         Route::get('/payouts', [PayoutController::class, 'index']);
         Route::post('/payouts/request', [PayoutController::class, 'request']);
+
+        // Stripe Connect
+        Route::get('/stripe/onboard', [SellerController::class, 'stripeOnboard']);
+        Route::get('/stripe/status', [SellerController::class, 'stripeStatus']);
     });
 
     // --- Espace admin ---

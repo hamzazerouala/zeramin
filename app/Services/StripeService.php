@@ -93,4 +93,69 @@ class StripeService
             config('stripe.webhook_secret'),
         );
     }
+
+    /* ------------------------------------------------------------------ */
+    /*  Stripe Connect                                                       */
+    /* ------------------------------------------------------------------ */
+
+    /**
+     * Crée un compte Express Stripe Connect pour un vendeur.
+     * Retourne l'account_id.
+     */
+    public function createConnectAccount(\App\Models\User $user): string
+    {
+        $account = $this->client->accounts->create([
+            'type'         => 'express',
+            'email'        => $user->email,
+            'capabilities' => [
+                'transfers' => ['requested' => true],
+            ],
+            'metadata' => ['user_id' => $user->id],
+        ]);
+
+        return $account->id;
+    }
+
+    /**
+     * Génère un lien d'onboarding Stripe Connect.
+     */
+    public function createOnboardingLink(string $accountId, string $returnUrl, string $refreshUrl): string
+    {
+        $link = $this->client->accountLinks->create([
+            'account'     => $accountId,
+            'refresh_url' => $refreshUrl,
+            'return_url'  => $returnUrl,
+            'type'        => 'account_onboarding',
+        ]);
+
+        return $link->url;
+    }
+
+    /**
+     * Retourne le statut du compte Connect (charges_enabled, payouts_enabled).
+     */
+    public function getAccountStatus(string $accountId): array
+    {
+        $account = $this->client->accounts->retrieve($accountId);
+
+        return [
+            'charges_enabled' => $account->charges_enabled,
+            'payouts_enabled' => $account->payouts_enabled,
+            'details_submitted' => $account->details_submitted,
+        ];
+    }
+
+    /**
+     * Effectue un virement vers un compte Connect Stripe.
+     * Montant en centimes.
+     */
+    public function transferToConnect(string $accountId, int $amountCents, string $currency = 'eur', array $metadata = []): \Stripe\Transfer
+    {
+        return $this->client->transfers->create([
+            'amount'      => $amountCents,
+            'currency'    => strtolower($currency),
+            'destination' => $accountId,
+            'metadata'    => $metadata,
+        ]);
+    }
 }
