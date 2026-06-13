@@ -66,6 +66,21 @@ class AliExpressScraperService
 
     private function fetch(string $url): string
     {
+        $fetcher = config('aliexpress.fetcher', 'http');
+
+        if ($fetcher === 'headless') {
+            // La configuration demande un fetch headless mais aucun service n'est
+            // branché dans cette installation. On log un avertissement explicite
+            // et on fait un fallback vers Guzzle en espérant que la page soit
+            // accessible (acceptable en dev, prévisiblement bloqué en prod).
+            \Illuminate\Support\Facades\Log::warning(
+                'AliExpress fetcher=headless demandé mais non implémenté. '
+                .'Fallback vers Guzzle HTTP (risque d\'échec anti-bot en production). '
+                .'Branchez un service navigateur headless ou passez sur ALIEXPRESS_FETCHER=http.',
+                ['url' => $url]
+            );
+        }
+
         try {
             return (string) $this->http->get($url)->getBody();
         } catch (GuzzleException $e) {
