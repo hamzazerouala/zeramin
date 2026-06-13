@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\ReviewController;
 use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\TicketController;
+use App\Http\Controllers\Api\PayoutController;
 
 /*
 |--------------------------------------------------------------------------
@@ -113,6 +114,10 @@ Route::middleware('auth:sanctum')->group(function () {
 
         Route::get('/settings', [SellerController::class, 'settings']);
         Route::put('/settings', [SellerController::class, 'updateSettings']);
+
+        // Virements
+        Route::get('/payouts', [PayoutController::class, 'index']);
+        Route::post('/payouts/request', [PayoutController::class, 'request']);
     });
 
     // --- Espace admin ---

@@ -23,4 +23,8 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
+
+    'platform' => [
+        'fee' => (float) env('PLATFORM_FEE', 0.05), // 5 % de commission par défaut
+    ],
 ];

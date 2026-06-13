@@ -154,6 +154,26 @@ export interface Address {
     is_default: boolean;
 }
 
+export interface PendingAmount {
+    total_amount: number;
+    fees_amount: number;
+    net_amount: number;
+    fee_rate: number;
+}
+
+export interface Payout {
+    id: number;
+    seller_id: number;
+    period_start: string;
+    period_end: string;
+    total_amount: number;
+    fees_amount: number;
+    net_amount: number;
+    status: 'pending' | 'processing' | 'paid' | 'failed';
+    stripe_payout_id?: string | null;
+    created_at?: string;
+}
+
 export interface CheckoutBreakdown {
     subtotal: number;
     discount: number;

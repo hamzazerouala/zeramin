@@ -19,6 +19,7 @@ import SellerProducts from '@/pages/seller/Products';
 import ImportProduct from '@/pages/seller/ImportProduct';
 import SellerOrders from '@/pages/seller/Orders';
 import SellerSettings from '@/pages/seller/Settings';
+import SellerPayouts from '@/pages/seller/Payouts';
 import Admin from '@/pages/admin/Admin';
 import NotFound from '@/pages/NotFound';
 
@@ -49,6 +50,7 @@ export default function App() {
                     <Route path="/seller/products/import" element={<ImportProduct />} />
                     <Route path="/seller/orders" element={<SellerOrders />} />
                     <Route path="/seller/settings" element={<SellerSettings />} />
+                    <Route path="/seller/payouts" element={<SellerPayouts />} />
                 </Route>
 
                 <Route element={<ProtectedRoute requireAdmin />}>

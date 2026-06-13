@@ -40,6 +40,7 @@ export default function SellerDashboard() {
                     <Link to="/seller/products" className="text-brand-600 hover:underline">Produits</Link>
                     <Link to="/seller/products/import" className="text-brand-600 hover:underline">Importer</Link>
                     <Link to="/seller/orders" className="text-brand-600 hover:underline">Commandes</Link>
+                    <Link to="/seller/payouts" className="text-brand-600 hover:underline">Virements</Link>
                     <Link to="/seller/settings" className="text-brand-600 hover:underline">Paramètres</Link>
                 </nav>
             </div>

@@ -55,6 +55,11 @@ class Order extends Model
         return $this->hasOne(PaymentIntent::class);
     }
 
+    public function payouts(): HasMany
+    {
+        return $this->hasMany(Payout::class, 'seller_id', 'seller_id');
+    }
+
     /**
      * Génère un numéro de commande unique (ex: FRA20260613A1B2C3).
      */
