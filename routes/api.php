@@ -128,5 +128,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::put('/disputes/{order}/resolve', [AdminController::class, 'resolveDispute']);
         Route::get('/tickets', [TicketController::class, 'adminIndex']);
         Route::put('/tickets/{ticket}/status', [TicketController::class, 'updateStatus']);
+        Route::get('/stats', [AdminController::class, 'stats']);
     });
 });

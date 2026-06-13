@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\OrderResource;
 use App\Models\Order;
+use App\Models\SupportTicket;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -64,5 +65,21 @@ class AdminController extends Controller
         ]);
 
         return response()->json(['message' => 'Litige résolu.', 'status' => $order->status]);
+    }
+
+    /** KPIs globaux de la plateforme. */
+    public function stats(): JsonResponse
+    {
+        $totalUsers    = User::count();
+        $totalSellers  = User::where('user_type', 'seller')->count();
+        $openDisputes  = Order::where('status', 'disputed')->count();
+        $openTickets   = SupportTicket::whereIn('status', ['open', 'pending', 'escalated'])->count();
+
+        return response()->json([
+            'total_users'   => $totalUsers,
+            'total_sellers' => $totalSellers,
+            'open_disputes' => $openDisputes,
+            'open_tickets'  => $openTickets,
+        ]);
     }
 }

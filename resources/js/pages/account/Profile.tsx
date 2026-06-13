@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api, apiErrorMessage } from '@/lib/api';
 import { useAuth } from '@/stores/auth';
@@ -98,6 +98,178 @@ function AddressForm({
                 </button>
             </div>
         </div>
+    );
+}
+
+/* ------------------------------------------------------------------ */
+/*  Section 2FA                                                         */
+/* ------------------------------------------------------------------ */
+function TwoFactorSection() {
+    const { user, loadProfile } = useAuth();
+    const [step, setStep] = useState<'idle' | 'setup' | 'disable'>('idle');
+    const [qrUrl, setQrUrl] = useState('');
+    const [secret, setSecret] = useState('');
+    const [otp, setOtp] = useState(['', '', '', '', '', '']);
+    const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+    const [msg, setMsg] = useState('');
+    const [err, setErr] = useState('');
+    const [loading, setLoading] = useState(false);
+
+    const otpValue = otp.join('');
+
+    const handleOtpChange = (idx: number, val: string) => {
+        const digit = val.replace(/\D/g, '').slice(-1);
+        const next = [...otp];
+        next[idx] = digit;
+        setOtp(next);
+        if (digit && idx < 5) otpRefs.current[idx + 1]?.focus();
+    };
+
+    const handleOtpKeyDown = (idx: number, e: React.KeyboardEvent<HTMLInputElement>) => {
+        if (e.key === 'Backspace' && !otp[idx] && idx > 0) {
+            otpRefs.current[idx - 1]?.focus();
+        }
+    };
+
+    const handleOtpPaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+        const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+        if (pasted.length === 6) {
+            setOtp(pasted.split(''));
+            otpRefs.current[5]?.focus();
+        }
+        e.preventDefault();
+    };
+
+    const startSetup = async () => {
+        setErr(''); setMsg(''); setLoading(true);
+        try {
+            const { data } = await api.post<{ qr_code_url: string; secret: string }>('/auth/2fa/setup');
+            setQrUrl(data.qr_code_url);
+            setSecret(data.secret);
+            setStep('setup');
+            setTimeout(() => otpRefs.current[0]?.focus(), 100);
+        } catch (e) { setErr(apiErrorMessage(e)); }
+        finally { setLoading(false); }
+    };
+
+    const confirmSetup = async () => {
+        if (otpValue.length < 6) { setErr('Saisissez les 6 chiffres.'); return; }
+        setErr(''); setLoading(true);
+        try {
+            await api.post('/auth/2fa/verify', { code: otpValue });
+            await loadProfile();
+            setStep('idle'); setMsg('Authentification à deux facteurs activée.');
+            setOtp(['', '', '', '', '', '']);
+        } catch (e) { setErr(apiErrorMessage(e)); setOtp(['', '', '', '', '', '']); setTimeout(() => otpRefs.current[0]?.focus(), 50); }
+        finally { setLoading(false); }
+    };
+
+    const startDisable = () => {
+        setStep('disable'); setErr(''); setMsg('');
+        setTimeout(() => otpRefs.current[0]?.focus(), 100);
+    };
+
+    const confirmDisable = async () => {
+        if (otpValue.length < 6) { setErr('Saisissez les 6 chiffres.'); return; }
+        setErr(''); setLoading(true);
+        try {
+            await api.post('/auth/2fa/disable', { code: otpValue });
+            await loadProfile();
+            setStep('idle'); setMsg('Authentification à deux facteurs désactivée.');
+            setOtp(['', '', '', '', '', '']);
+        } catch (e) { setErr(apiErrorMessage(e)); setOtp(['', '', '', '', '', '']); setTimeout(() => otpRefs.current[0]?.focus(), 50); }
+        finally { setLoading(false); }
+    };
+
+    const OtpBoxes = () => (
+        <div className="flex gap-2">
+            {otp.map((digit, idx) => (
+                <input
+                    key={idx}
+                    ref={(el) => { otpRefs.current[idx] = el; }}
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={1}
+                    value={digit}
+                    onChange={(e) => handleOtpChange(idx, e.target.value)}
+                    onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                    onPaste={handleOtpPaste}
+                    className="h-10 w-9 rounded-md border-2 text-center text-base font-semibold focus:border-brand-600 focus:outline-none"
+                />
+            ))}
+        </div>
+    );
+
+    return (
+        <section className="rounded-lg border bg-white p-5">
+            <h2 className="mb-1 font-semibold text-gray-800">Sécurité — Authentification 2FA</h2>
+            <p className="mb-4 text-sm text-gray-500">
+                {user?.two_factor_enabled
+                    ? 'La double authentification est activée sur votre compte.'
+                    : 'Protégez votre compte avec une application d\'authentification (Google Authenticator, Authy…).'}
+            </p>
+
+            {msg && <div className="mb-3"><Alert type="success">{msg}</Alert></div>}
+            {err && <div className="mb-3"><Alert>{err}</Alert></div>}
+
+            {step === 'idle' && (
+                user?.two_factor_enabled ? (
+                    <button onClick={startDisable}
+                        className="rounded-md border border-red-300 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                        Désactiver la 2FA
+                    </button>
+                ) : (
+                    <button onClick={startSetup} disabled={loading}
+                        className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+                        {loading ? 'Chargement…' : 'Activer la 2FA'}
+                    </button>
+                )
+            )}
+
+            {step === 'setup' && (
+                <div className="space-y-4">
+                    <div className="flex flex-col items-start gap-4 sm:flex-row">
+                        <img src={qrUrl} alt="QR code 2FA" className="h-36 w-36 rounded-lg border p-1" />
+                        <div className="text-sm">
+                            <p className="mb-2 font-medium text-gray-700">1. Scannez ce QR code avec votre application d'authentification.</p>
+                            <p className="mb-1 text-gray-500">Ou entrez le code manuellement :</p>
+                            <code className="rounded bg-gray-100 px-2 py-1 font-mono text-xs tracking-widest">{secret}</code>
+                        </div>
+                    </div>
+                    <div>
+                        <p className="mb-2 text-sm font-medium text-gray-700">2. Entrez le code généré pour confirmer :</p>
+                        <OtpBoxes />
+                    </div>
+                    <div className="flex gap-2">
+                        <button onClick={confirmSetup} disabled={loading || otpValue.length < 6}
+                            className="rounded-md bg-brand-600 px-4 py-2 text-sm font-medium text-white hover:bg-brand-700 disabled:opacity-50">
+                            {loading ? 'Vérification…' : 'Confirmer l\'activation'}
+                        </button>
+                        <button onClick={() => { setStep('idle'); setErr(''); setOtp(['', '', '', '', '', '']); }}
+                            className="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">
+                            Annuler
+                        </button>
+                    </div>
+                </div>
+            )}
+
+            {step === 'disable' && (
+                <div className="space-y-4">
+                    <p className="text-sm text-gray-600">Entrez votre code 2FA actuel pour confirmer la désactivation :</p>
+                    <OtpBoxes />
+                    <div className="flex gap-2">
+                        <button onClick={confirmDisable} disabled={loading || otpValue.length < 6}
+                            className="rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50">
+                            {loading ? 'Vérification…' : 'Confirmer la désactivation'}
+                        </button>
+                        <button onClick={() => { setStep('idle'); setErr(''); setOtp(['', '', '', '', '', '']); }}
+                            className="rounded-md border px-4 py-2 text-sm text-gray-600 hover:bg-gray-50">
+                            Annuler
+                        </button>
+                    </div>
+                </div>
+            )}
+        </section>
     );
 }
 
@@ -255,6 +427,9 @@ export default function Profile() {
                     )}
                 </div>
             </section>
+
+            {/* --- Sécurité 2FA --- */}
+            <TwoFactorSection />
         </div>
     );
 }

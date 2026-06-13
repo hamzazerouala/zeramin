@@ -6,12 +6,34 @@ import Loader from '@/components/Loader';
 import Pagination from '@/components/Pagination';
 import type { Order, Paginated, SupportTicket, User } from '@/types';
 
+interface AdminStats {
+    total_users: number;
+    total_sellers: number;
+    open_disputes: number;
+    open_tickets: number;
+}
+
+function KpiCard({ label, value, color }: { label: string; value: number; color?: string }) {
+    return (
+        <div className={`rounded-lg border bg-white p-5 ${color ?? ''}`}>
+            <p className="text-sm text-gray-500">{label}</p>
+            <p className="mt-1 text-3xl font-bold text-gray-900">{value}</p>
+        </div>
+    );
+}
+
 export default function Admin() {
-    const [tab, setTab] = useState<'users' | 'disputes' | 'tickets'>('users');
+    const [tab, setTab] = useState<'dashboard' | 'users' | 'disputes' | 'tickets'>('dashboard');
     const [usersPage, setUsersPage] = useState(1);
     const [disputesPage, setDisputesPage] = useState(1);
     const [ticketsPage, setTicketsPage] = useState(1);
     const qc = useQueryClient();
+
+    const stats = useQuery<AdminStats>({
+        queryKey: ['admin-stats'],
+        queryFn: async () => (await api.get<AdminStats>('/admin/stats')).data,
+        enabled: tab === 'dashboard',
+    });
 
     const users = useQuery({
         queryKey: ['admin-users', usersPage],
@@ -46,16 +68,27 @@ export default function Admin() {
         <div>
             <h1 className="mb-6 text-2xl font-bold">Administration</h1>
             <div className="mb-4 flex gap-2 text-sm">
-                {(['users', 'disputes', 'tickets'] as const).map((t) => (
+                {(['dashboard', 'users', 'disputes', 'tickets'] as const).map((t) => (
                     <button
                         key={t}
                         onClick={() => setTab(t)}
                         className={`rounded-md border px-3 py-1.5 ${tab === t ? 'border-brand-600 bg-brand-50 text-brand-700' : ''}`}
                     >
-                        {t === 'users' ? 'Utilisateurs' : t === 'disputes' ? 'Litiges' : 'Tickets'}
+                        {t === 'dashboard' ? 'Tableau de bord' : t === 'users' ? 'Utilisateurs' : t === 'disputes' ? 'Litiges' : 'Tickets'}
                     </button>
                 ))}
             </div>
+
+            {tab === 'dashboard' && (
+                stats.isLoading ? <Loader /> : (
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                        <KpiCard label="Utilisateurs" value={stats.data?.total_users ?? 0} />
+                        <KpiCard label="Vendeurs actifs" value={stats.data?.total_sellers ?? 0} />
+                        <KpiCard label="Litiges ouverts" value={stats.data?.open_disputes ?? 0} color="border-orange-200" />
+                        <KpiCard label="Tickets ouverts" value={stats.data?.open_tickets ?? 0} color="border-blue-200" />
+                    </div>
+                )
+            )}
 
             {tab === 'users' && (
                 users.isLoading ? <Loader /> : (

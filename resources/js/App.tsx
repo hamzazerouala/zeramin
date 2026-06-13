@@ -8,6 +8,7 @@ import CartPage from '@/pages/Cart';
 import Checkout from '@/pages/Checkout';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
+import ResetPassword from '@/pages/ResetPassword';
 import Orders from '@/pages/account/Orders';
 import OrderDetail from '@/pages/account/OrderDetail';
 import Wishlist from '@/pages/account/Wishlist';
@@ -34,6 +35,7 @@ export default function App() {
                 <Route path="/checkout" element={<Checkout />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
 
                 <Route element={<ProtectedRoute />}>
                     <Route path="/account/orders" element={<Orders />} />
