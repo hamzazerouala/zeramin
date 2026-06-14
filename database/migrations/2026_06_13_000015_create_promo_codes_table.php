@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('promo_codes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('seller_id')->constrained('seller_profiles')->cascadeOnDelete();
+            $table->foreignId('seller_id')->nullable()->constrained('seller_profiles')->cascadeOnDelete();
             $table->string('code')->unique();
             $table->enum('discount_type', ['percentage', 'fixed'])->default('percentage');
             $table->decimal('discount_value', 10, 2);

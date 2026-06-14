@@ -48,9 +48,9 @@ class DemoSellerSeeder extends Seeder
                 'title'       => 'Écouteurs Bluetooth Pro X1',
                 'slug'        => 'ecouteurs-bluetooth-pro-x1',
                 'description' => 'Écouteurs sans fil avec réduction de bruit active, autonomie 30h, son stéréo HD.',
-                'price'       => 49.99,
                 'cost_price'  => 18.00,
-                'currency'    => 'EUR',
+                'markup_coefficient' => 2.0,
+                'markup_fixed'       => 5.0,
                 'stock_platform' => 150,
                 'rating'      => 4.3,
                 'rating_count'=> 42,
@@ -59,9 +59,9 @@ class DemoSellerSeeder extends Seeder
                 'title'       => 'Montre Connectée FitBand 3',
                 'slug'        => 'montre-connectee-fitband-3',
                 'description' => 'Suivi santé complet : fréquence cardiaque, sommeil, GPS. Compatible iOS & Android.',
-                'price'       => 79.99,
                 'cost_price'  => 28.00,
-                'currency'    => 'EUR',
+                'markup_coefficient' => 2.0,
+                'markup_fixed'       => 5.0,
                 'stock_platform' => 80,
                 'rating'      => 4.1,
                 'rating_count'=> 28,
@@ -70,9 +70,9 @@ class DemoSellerSeeder extends Seeder
                 'title'       => 'Chargeur Rapide USB-C 65W',
                 'slug'        => 'chargeur-rapide-usbc-65w',
                 'description' => 'Chargeur universel 65W compatible avec laptops, tablettes et smartphones.',
-                'price'       => 24.99,
                 'cost_price'  => 7.50,
-                'currency'    => 'EUR',
+                'markup_coefficient' => 2.5,
+                'markup_fixed'       => 5.0,
                 'stock_platform' => 300,
                 'rating'      => 4.6,
                 'rating_count'=> 95,
@@ -81,9 +81,9 @@ class DemoSellerSeeder extends Seeder
                 'title'       => 'Support Téléphone Voiture Magnétique',
                 'slug'        => 'support-telephone-voiture-magnetique',
                 'description' => 'Support magnétique universel pour tableau de bord, rotation 360°.',
-                'price'       => 14.99,
                 'cost_price'  => 3.50,
-                'currency'    => 'EUR',
+                'markup_coefficient' => 3.0,
+                'markup_fixed'       => 4.0,
                 'stock_platform' => 500,
                 'rating'      => 4.4,
                 'rating_count'=> 180,
@@ -92,23 +92,33 @@ class DemoSellerSeeder extends Seeder
                 'title'       => 'Lampe de Bureau LED Smart',
                 'slug'        => 'lampe-bureau-led-smart',
                 'description' => 'Lampe LED dimmable avec chargeur sans fil intégré, contrôle tactile, température de couleur réglable.',
-                'price'       => 39.99,
                 'cost_price'  => 14.00,
-                'currency'    => 'EUR',
+                'markup_coefficient' => 2.0,
+                'markup_fixed'       => 8.0,
                 'stock_platform' => 120,
                 'rating'      => 4.2,
                 'rating_count'=> 56,
             ],
         ];
 
+        $pricing = app(\App\Services\PricingService::class);
+
         foreach ($products as $productData) {
+            $finalPrice = $pricing->finalPrice(
+                (float) $productData['cost_price'],
+                (float) $productData['markup_coefficient'],
+                (float) $productData['markup_fixed'],
+            );
             Product::updateOrCreate(
                 ['slug' => $productData['slug']],
                 array_merge($productData, [
                     'seller_id'   => $profile->id,
                     'category_id' => $categoryId,
+                    'cost_currency' => 'EUR',
+                    'final_price_calculated' => $finalPrice,
                     'is_active'   => true,
                     'featured'    => true,
+                    'synced_at'   => now(),
                 ])
             );
         }
