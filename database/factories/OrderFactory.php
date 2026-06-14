@@ -25,7 +25,7 @@ class OrderFactory extends Factory
             'tax_amount'     => 0,
             'total_amount'   => $total,
             'currency'       => 'EUR',
-            'status'         => fake()->randomElement(['pending', 'processing', 'shipped', 'delivered', 'cancelled']),
+            'status'         => fake()->randomElement(['processing', 'shipped', 'delivered', 'cancelled']),
             'payment_status' => fake()->randomElement(['pending', 'succeeded']),
             'payment_method' => 'stripe',
             'shipping_address' => [
@@ -49,7 +49,7 @@ class OrderFactory extends Factory
     public function pending(): static
     {
         return $this->state(fn () => [
-            'status'         => 'pending',
+            'status'         => 'processing',
             'payment_status' => 'pending',
         ]);
     }

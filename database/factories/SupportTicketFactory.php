@@ -16,8 +16,8 @@ class SupportTicketFactory extends Factory
         return [
             'user_id'  => User::factory(),
             'subject'  => fake()->sentence(5),
-            'status'   => fake()->randomElement(['open', 'in_progress', 'resolved', 'closed']),
-            'priority' => fake()->randomElement(['low', 'medium', 'high']),
+            'status'   => fake()->randomElement(['open', 'pending', 'resolved', 'closed']),
+            'priority' => fake()->randomElement(['low', 'normal', 'high']),
         ];
     }
 

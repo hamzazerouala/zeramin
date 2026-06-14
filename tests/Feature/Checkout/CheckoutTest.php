@@ -8,8 +8,8 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Models\SellerProfile;
 use App\Models\User;
+use App\Services\StripeService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
 
 class CheckoutTest extends TestCase
@@ -51,14 +51,15 @@ class CheckoutTest extends TestCase
     {
         [$user, $cart] = $this->buyerWithCartAndItem();
 
-        // Mock Stripe API
-        Http::fake([
-            'api.stripe.com/*' => Http::response([
-                'id'             => 'pi_fake_123',
-                'client_secret'  => 'cs_fake_123',
-                'status'         => 'requires_payment_method',
-            ], 200),
-        ]);
+        // Le SDK Stripe (cURL) n'est pas interceptable par Http::fake() : on mocke
+        // directement la création du PaymentIntent.
+        $this->partialMock(StripeService::class, function ($mock) {
+            $mock->shouldReceive('createPaymentIntent')->andReturn(\Stripe\PaymentIntent::constructFrom([
+                'id'            => 'pi_fake_123',
+                'client_secret' => 'cs_fake_123',
+                'status'        => 'requires_payment_method',
+            ]));
+        });
 
         $this->actingAs($user)
             ->postJson('/api/checkout/create-payment-intent', [

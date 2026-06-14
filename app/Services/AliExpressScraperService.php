@@ -3,8 +3,7 @@
 namespace App\Services;
 
 use App\Exceptions\AliExpressScrapeException;
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
+use Illuminate\Support\Facades\Http;
 use Symfony\Component\DomCrawler\Crawler;
 
 /**
@@ -21,18 +20,6 @@ use Symfony\Component\DomCrawler\Crawler;
  */
 class AliExpressScraperService
 {
-    public function __construct(private ?Client $http = null)
-    {
-        $this->http ??= new Client([
-            'timeout' => (int) config('aliexpress.timeout', 30),
-            'headers' => [
-                'User-Agent' => config('aliexpress.user_agent'),
-                'Accept-Language' => 'fr-FR,fr;q=0.9,en;q=0.8',
-                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            ],
-        ]);
-    }
-
     /**
      * @return array{aliexpress_product_id:?string,title:string,description:?string,images:array,price:float,currency:string,variants:array,rating:?float,reviews_count:?int}
      *
@@ -81,11 +68,17 @@ class AliExpressScraperService
             );
         }
 
-        try {
-            return (string) $this->http->get($url)->getBody();
-        } catch (GuzzleException $e) {
-            throw new AliExpressScrapeException('Échec de récupération de la page AliExpress : '.$e->getMessage());
+        $response = Http::withHeaders([
+            'User-Agent' => config('aliexpress.user_agent'),
+            'Accept-Language' => 'fr-FR,fr;q=0.9,en;q=0.8',
+            'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        ])->timeout((int) config('aliexpress.timeout', 30))->get($url);
+
+        if ($response->failed()) {
+            throw new AliExpressScrapeException('Échec de récupération de la page AliExpress : HTTP '.$response->status());
         }
+
+        return $response->body();
     }
 
     public function extractProductId(string $url): ?string

@@ -70,7 +70,7 @@ class AdminController extends Controller
     /** KPIs globaux de la plateforme. */
     public function stats(): JsonResponse
     {
-        $totalUsers    = User::count();
+        $totalUsers    = User::where('user_type', '!=', 'admin')->count();
         $totalSellers  = User::where('user_type', 'seller')->count();
         $openDisputes  = Order::where('status', 'disputed')->count();
         $openTickets   = SupportTicket::whereIn('status', ['open', 'pending', 'escalated'])->count();

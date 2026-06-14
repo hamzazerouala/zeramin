@@ -62,7 +62,7 @@ class SellerDashboardTest extends TestCase
     {
         [$user, $profile] = $this->sellerWithProfile();
         Order::factory()->create(['seller_id' => $profile->id, 'status' => 'delivered']);
-        Order::factory()->create(['seller_id' => $profile->id, 'status' => 'pending']);
+        Order::factory()->create(['seller_id' => $profile->id, 'status' => 'processing']);
 
         $res = $this->actingAs($user)
             ->getJson('/api/seller/orders?status=delivered')
@@ -74,7 +74,7 @@ class SellerDashboardTest extends TestCase
     public function test_vendeur_peut_changer_statut_commande(): void
     {
         [$user, $profile] = $this->sellerWithProfile();
-        $order = Order::factory()->create(['seller_id' => $profile->id, 'status' => 'pending']);
+        $order = Order::factory()->create(['seller_id' => $profile->id, 'status' => 'shipped']);
 
         $this->actingAs($user)
             ->putJson("/api/seller/orders/{$order->id}/status", [

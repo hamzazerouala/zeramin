@@ -1,8 +1,8 @@
 <?php
 
 return [
-    'public_key' => env('STRIPE_PUBLIC_KEY'),
-    'secret_key' => env('STRIPE_SECRET_KEY'),
+    'public_key' => env('STRIPE_KEY'),
+    'secret_key' => env('STRIPE_SECRET'),
     'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
 
     // Devise par défaut quand le pays n'est pas mappé.

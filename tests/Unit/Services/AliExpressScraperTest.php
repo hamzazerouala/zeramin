@@ -3,29 +3,27 @@
 namespace Tests\Unit\Services;
 
 use App\Services\AliExpressScraperService;
-use GuzzleHttp\Client;
-use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
 
 class AliExpressScraperTest extends TestCase
 {
     public function test_extract_product_id_depuis_url(): void
     {
-        $service = new AliExpressScraperService(new Client);
+        $service = new AliExpressScraperService;
 
         $this->assertEquals('1234567890', $service->extractProductId('https://www.aliexpress.com/item/1234567890.html'));
     }
 
     public function test_extract_product_id_url_courte(): void
     {
-        $service = new AliExpressScraperService(new Client);
+        $service = new AliExpressScraperService;
 
         $this->assertEquals('987654321', $service->extractProductId('https://www.aliexpress.com/987654321'));
     }
 
     public function test_extract_product_id_url_invalide(): void
     {
-        $service = new AliExpressScraperService(new Client);
+        $service = new AliExpressScraperService;
 
         $this->assertNull($service->extractProductId('https://www.example.com'));
     }

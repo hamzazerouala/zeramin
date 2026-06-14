@@ -74,7 +74,7 @@ class AdminTest extends TestCase
     {
         [$user, $profile] = $this->sellerWithProfile();
         Order::factory()->create(['seller_id' => $profile->id, 'status' => 'disputed']);
-        Order::factory()->create(['seller_id' => $profile->id, 'status' => 'pending']);
+        Order::factory()->create(['seller_id' => $profile->id, 'status' => 'processing']);
 
         $res = $this->actingAs($this->admin())
             ->getJson('/api/admin/disputes')

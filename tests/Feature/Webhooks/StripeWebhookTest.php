@@ -58,14 +58,17 @@ class StripeWebhookTest extends TestCase
 
         // On mock le StripeService pour contourner la vérification de signature
         $this->mock(\App\Services\StripeService::class, function ($mock) {
-            $event = new \stdClass;
-            $event->type = 'payment_intent.succeeded';
-            $event->data = new \stdClass;
-            $intent = new \stdClass;
-            $intent->id = 'pi_test_123';
-            $intent->latest_charge = 'ch_test_123';
-            $intent->payment_method_types = ['card'];
-            $event->data->object = $intent;
+            $event = \Stripe\Event::constructFrom([
+                'id' => 'evt_test',
+                'type' => 'payment_intent.succeeded',
+                'data' => [
+                    'object' => [
+                        'id' => 'pi_test_123',
+                        'latest_charge' => 'ch_test_123',
+                        'payment_method_types' => ['card'],
+                    ],
+                ],
+            ]);
 
             $mock->shouldReceive('constructWebhookEvent')->andReturn($event);
         });

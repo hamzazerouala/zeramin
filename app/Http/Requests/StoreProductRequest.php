@@ -8,7 +8,13 @@ class StoreProductRequest extends FormRequest
 {
     public function authorize(): bool
     {
-        return $this->user()?->isSeller() ?? false;
+        if (! $this->user()?->isSeller()) {
+            return false;
+        }
+
+        $product = $this->route('product');
+
+        return ! $product || $product->seller_id === $this->user()->sellerProfile?->id;
     }
 
     public function rules(): array

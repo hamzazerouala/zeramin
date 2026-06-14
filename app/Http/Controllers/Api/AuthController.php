@@ -112,11 +112,11 @@ class AuthController extends Controller
 
         $status = Password::sendResetLink($request->only('email'));
 
-        // Réponse neutre (évite l'énumération d'emails).
-        return response()->json([
-            'message' => 'Si un compte existe, un email de réinitialisation a été envoyé.',
-            'status' => __($status),
-        ]);
+        if ($status !== Password::RESET_LINK_SENT) {
+            throw ValidationException::withMessages(['email' => [__($status)]]);
+        }
+
+        return response()->json(['message' => __($status)]);
     }
 
     public function resetPassword(ResetPasswordRequest $request): JsonResponse

@@ -29,8 +29,8 @@ class PayoutController extends Controller
         $pending = $this->payoutService->computePendingAmount($seller);
 
         return response()->json([
-            'payouts'         => $payouts,
-            'pending_amount'  => $pending,
+            ...$payouts->toArray(),
+            'pending_amount' => $pending,
         ]);
     }
 
@@ -50,8 +50,8 @@ class PayoutController extends Controller
         }
 
         return response()->json([
+            ...$payout->toArray(),
             'message' => 'Demande de virement enregistrée.',
-            'payout'  => $payout,
         ], 201);
     }
 }
