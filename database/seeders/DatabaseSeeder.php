@@ -11,11 +11,12 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CategorySeeder::class,
             AdminSeeder::class,
+            PromoCodeSeeder::class,
         ]);
 
         // Jeu de données de démonstration (sauf en production).
         if (! app()->environment('production')) {
-            $this->call(DemoSeeder::class);
+            $this->call(DemoSellerSeeder::class);
         }
     }
 }

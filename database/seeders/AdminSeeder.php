@@ -11,13 +11,15 @@ class AdminSeeder extends Seeder
     public function run(): void
     {
         User::updateOrCreate(
-            ['email' => 'admin@dropshop.local'],
+            ['email' => 'admin@dropshop.test'],
             [
-                'name' => 'Administrateur',
-                'password' => Hash::make('ChangeMe!2026'),
+                'name'      => 'Administrateur',
+                'email'     => 'admin@dropshop.test',
+                'password'  => Hash::make('Admin123!'),
                 'user_type' => 'admin',
-                'email_verified_at' => now(),
             ]
         );
+
+        $this->command->info('✓ Compte admin créé : admin@dropshop.test / Admin123!');
     }
 }
