@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\SupportTicket;
 use App\Models\TicketMessage;
+use App\Notifications\TicketMessageReceived;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -83,6 +84,19 @@ class TicketController extends Controller
         // Rouvrir si le ticket était résolu/fermé et que c'est le client qui répond.
         if ($user->user_type !== 'admin' && in_array($ticket->status, ['resolved', 'closed'], true)) {
             $ticket->update(['status' => 'open']);
+        }
+
+        // Notifier l'autre partie.
+        $message->load('user:id,name');
+        $ticket->load('user');
+        $recipientIsAdmin = $user->user_type === 'admin';
+        // Si admin répond → notifier le client. Si client répond → notifier l'admin (user_type admin).
+        $recipient = $recipientIsAdmin
+            ? $ticket->user
+            : \App\Models\User::where('user_type', 'admin')->first();
+
+        if ($recipient) {
+            $recipient->notify(new TicketMessageReceived($ticket, $message));
         }
 
         return response()->json($message->load('user:id,name'), 201);

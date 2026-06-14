@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\WishlistController;
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\TicketController;
 use App\Http\Controllers\Api\PayoutController;
+use App\Http\Controllers\Api\NotificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -92,6 +93,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/tickets', [TicketController::class, 'store']);
     Route::get('/tickets/{ticket}', [TicketController::class, 'show']);
     Route::post('/tickets/{ticket}/messages', [TicketController::class, 'addMessage']);
+
+    // Notifications
+    Route::get('/notifications', [NotificationController::class, 'index']);
+    Route::post('/notifications/{id}/read', [NotificationController::class, 'markRead']);
+    Route::post('/notifications/read-all', [NotificationController::class, 'markAllRead']);
 
     // --- Espace vendeur ---
     Route::prefix('seller')->middleware('seller')->group(function () {

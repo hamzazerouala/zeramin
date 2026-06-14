@@ -10,6 +10,7 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\SellerProfile;
 use App\Models\ShippingZone;
+use App\Notifications\OrderStatusChanged;
 use App\Services\StripeService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -131,6 +132,7 @@ class SellerController extends Controller
         ]);
 
         $wasShipped = $order->status === 'shipped';
+        $previousStatus = $order->status;
         $order->fill($data);
         if ($data['status'] === 'delivered' && ! $order->delivered_at) {
             $order->delivered_at = now();
@@ -142,6 +144,14 @@ class SellerController extends Controller
             $to = $order->customer?->email ?? $order->email_guest;
             if ($to) {
                 Mail::to($to)->send(new OrderShippedMail($order->fresh()));
+            }
+        }
+
+        // Notifier le client du changement de statut (pour tout changement).
+        if ($data['status'] !== $previousStatus) {
+            $customer = $order->customer;
+            if ($customer) {
+                $customer->notify(new OrderStatusChanged($order->fresh(), $previousStatus));
             }
         }
 

@@ -181,3 +181,22 @@ export interface CheckoutBreakdown {
     tax: number;
     total: number;
 }
+
+export interface AppNotification {
+    id: string;
+    type: string | null;
+    data: {
+        type?: string;
+        ticket_id?: number;
+        order_id?: number;
+        order_number?: string;
+        subject?: string;
+        sender?: string;
+        excerpt?: string;
+        status?: string;
+        url?: string;
+        [key: string]: unknown;
+    };
+    read_at: string | null;
+    created_at?: string;
+}
